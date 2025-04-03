@@ -6,59 +6,71 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { LiaEyeSlash } from "react-icons/lia";
 import { LiaEye } from "react-icons/lia";
+import InputField from "../InputField";
 
 const schema = z
   .object({
     username: z
       .string()
-      .min(3, { message: "Username must be at least 3 characters long!" })
-      .max(20, { message: "Username must be at most 20 characters long!" }),
-    email: z.string().email({ message: "Invalid email address" }),
-    password: z
-      .string()
-      .min(8, { message: "Password must be at least 8 characters long!" }),
+      .min(3, "Username must be at least 3 characters long!")
+      .max(20, "Username must be at most 20 characters long!"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters long!"),
     confirmPassword: z
       .string()
-      .min(8, {
-        message: "Confirm Password must be at least 8 characters long!",
-      }),
-    firstName: z.string().min(1, { message: "First name is required" }),
-    lastName: z.string().min(1, { message: "Last name is required" }),
-    phone: z.string().min(1, { message: "Phone number is required" }),
-    address: z.string().min(1, { message: "Address is required" }),
+      .min(8, "Confirm Password must be at least 8 characters long!"),
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    phone: z.string().min(1, "Phone number is required"),
+    address: z.string().min(1, "Address is required"),
     birthday: z
       .string()
-      .min(1, { message: "Date of birth is required" })
+      .min(1, "Date of birth is required")
       .refine((val) => !isNaN(Date.parse(val)), {
         message: "Invalid date format",
       }),
     sex: z.enum(["Male", "Female"], { message: "Sex is required" }),
-    img: z
-      .any()
-      .refine((file) => file instanceof File, { message: "Image is required" }),
+    img: z.instanceof(File,{message:"Image is required"}),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Passwords do not match",
+        path: ["confirmPassword"], // Error will appear under confirmPassword field
+      });
+    }
   });
 
-const TeacherForm = ({ type, data }: { type: "create" | "update"; data?: any }) => {
+
+
+type Inputs = z.infer<typeof schema>;
+
+const TeacherForm = ({
+  type,
+  data,
+}: {
+  type: "create" | "update";
+  data?: any;
+}) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
-  } = useForm({
+    watch,
+  } = useForm<Inputs>({
     resolver: zodResolver(schema),
     defaultValues: type === "update" ? data : {},
   });
+
+  const passwordValue = watch("password"); // Watch password field
 
   useEffect(() => {
     register("img", { required: "Image is required" });
   }, [register]);
 
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const onSubmit = handleSubmit((formData) => {
     console.log(formData);
@@ -75,177 +87,106 @@ const TeacherForm = ({ type, data }: { type: "create" | "update"; data?: any }) 
 
       {/* Grid Layout for Form Fields */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {/* First Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            First Name
-          </label>
-          <input
-            type="text"
-            {...register("firstName")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          />
-          {errors.firstName?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.firstName.message.toString()}
-            </p>
-          )}
-        </div>
+        <InputField
+          label="First Name"
+          type="text"
+          name="firstName"
+          register={register}
+          error={errors.firstName}
+        />
+        <InputField
+          label="Last Name"
+          type="text"
+          name="lastName"
+          register={register}
+          error={errors.lastName}
+        />
+        <InputField
+          label="Sex"
+          type="select"
+          name="sex"
+          register={register}
+          error={errors.sex}
+          options={["Male", "Female"]}
+        />
+        <InputField
+          label="Date of Birth"
+          type="date"
+          name="birthday"
+          register={register}
+          error={errors.birthday}
+        />
+        <InputField
+          label="Email"
+          type="email"
+          name="email"
+          register={register}
+          error={errors.email}
+        />
+        <InputField
+          label="Phone"
+          type="text"
+          name="phone"
+          register={register}
+          error={errors.phone}
+        />
+        <InputField
+          label="Address"
+          type="text"
+          name="address"
+          register={register}
+          error={errors.address}
+        />
+        <InputField
+          label="Profile Image"
+          type="file"
+          name="img"
+          register={register}
+          error={errors.img}
+        />
+        <InputField
+          label="Username"
+          type="text"
+          name="username"
+          register={register}
+          error={errors.username}
+        />
 
-        {/* Last Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Last Name
-          </label>
-          <input
-            type="text"
-            {...register("lastName")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          />
-          {errors.lastName?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.lastName.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Sex */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Sex</label>
-          <select
-            {...register("sex")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          >
-            <option value="">Select...</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-          {errors.sex?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.sex.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Birthday */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Date of Birth
-          </label>
-          <input
-            type="date"
-            {...register("birthday")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          />
-          {errors.birthday?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.birthday.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            type="email"
-            {...register("email")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          />
-          {errors.email?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.email.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Phone */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Phone
-          </label>
-          <input
-            type="text"
-            {...register("phone")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          />
-          {errors.phone?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.phone.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Address */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Address
-          </label>
-          <input
-            type="text"
-            {...register("address")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          />
-          {errors.address?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.address.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Image Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Profile Image
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              setValue("img", file);
-            }}
-          />
-          {errors.img?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.img.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Username */}
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Username
-          </label>
-          <input
-            type="text"
-            {...register("username")}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
-          />
-          {errors.username?.message && (
-            <p className="text-red-500 text-xs">
-              {errors.username.message.toString()}
-            </p>
-          )}
-        </div>
-        {/* Password */}
-        <div className="relative">
-          <label className="block text-sm font-medium text-gray-700">Password</label>
-          <input type={showPassword ? "text" : "password"} {...register("password")} className="mt-1 w-full border border-gray-300 p-2 rounded-md" />
-          <button type="button" className="absolute right-3 top-9" onClick={() => setShowPassword(!showPassword)}>
-            {showPassword ? <LiaEyeSlash className="w-6 h-6"/> : <LiaEye className="w-6 h-6"/>}
-          </button>
-          {errors.password?.message && <p className="text-red-500 text-xs">{errors.password.message.toString()}</p>}
-        </div>
+        <InputField
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          name="password"
+          register={register}
+          error={errors.password}
+          toggle={() => setShowPassword(!showPassword)}
+          showToggleIcon={true}
+          icon={
+            showPassword ? (
+              <LiaEyeSlash className="w-6 h-6" />
+            ) : (
+              <LiaEye className="w-6 h-6" />
+            )
+          }
+        />
 
-        {/* Confirm Password */}
-        <div className="relative">
-          <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
-          <input type={showConfirmPassword ? "text" : "password"} {...register("confirmPassword")} className="mt-1 w-full border border-gray-300 p-2 rounded-md" />
-          <button type="button" className="absolute right-3 top-9" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-            {showConfirmPassword ? <LiaEyeSlash className="w-6 h-6"/> : <LiaEye className="w-6 h-6"/>}
-          </button>
-          {errors.confirmPassword?.message && <p className="text-red-500 text-xs">{errors.confirmPassword.message.toString()}</p>}
-        </div>
+        <InputField
+          label="Confirm Password"
+          type={showConfirmPassword ? "text" : "password"}
+          name="confirmPassword"
+          register={register}
+          error={errors.confirmPassword}
+          toggle={() => setShowConfirmPassword(!showConfirmPassword)}
+          showToggleIcon={true}
+          icon={
+            showConfirmPassword ? (
+              <LiaEyeSlash className="w-6 h-6" />
+            ) : (
+              <LiaEye className="w-6 h-6" />
+            )
+          }
+        />
       </div>
-    
+
       {/* Submit Button */}
       <div className="mt-6 flex justify-center">
         <button
