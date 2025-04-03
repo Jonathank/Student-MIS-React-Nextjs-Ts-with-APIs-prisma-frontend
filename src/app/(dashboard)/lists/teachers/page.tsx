@@ -1,13 +1,18 @@
+"use client"
 import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role, teachersData } from "@/lib/data";
+import { role} from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
 import { BiSort } from "react-icons/bi";
 import { FaTrashAlt } from "react-icons/fa";
 import { FaFilter, FaPlus, FaRegEye, FaSort } from "react-icons/fa6";
+
+import { useEffect, useState } from "react";
+import { fetchTeachers, Teacher } from "@/service/teacherService";
+// ... other imports
 
 const columns = [
   {
@@ -16,18 +21,8 @@ const columns = [
   },
   {
     header: "Teacher ID",
-    accessor: "teacherId",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Subjects",
-    accessor: "subjects",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Classes",
-    accessor: "classes",
-    className: "hidden md:table-cell",
+    accessor: "id",
+    className: "hidden lg:table-cell",
   },
   {
     header: "Phone",
@@ -40,24 +35,43 @@ const columns = [
     className: "hidden lg:table-cell",
   },
   {
+    header: "Blood Type",
+    accessor: "bloodType",
+    className: "hidden md:table-cell",
+  },
+  {
+    header: "Sex",
+    accessor: "sex",
+    className: "hidden md:table-cell",
+  },
+  {
     header: "Actions",
     accessor: "action",
   },
 ];
 
-type Teacher = {
-  id: number;
-  teacherId: string;
-  name: string;
-  email: string;
-  photo: string;
-  phone: string;
-  subjects: string[];
-  classes: string[];
-  address: string;
-};
-
 const TeachersListPage = () => {
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getTeachers = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchTeachers();
+        setTeachers(data);
+      } catch (err) {
+        setError("Failed to fetch teachers");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getTeachers();
+  }, []);
+
   const renderRow = (item: Teacher) => (
     <tr
       key={item.id}
@@ -65,22 +79,26 @@ const TeachersListPage = () => {
     >
       <td className="flex items-center gap-4 p-4">
         <Image
-          src={item.photo}
+          src={item.img || "/placeholder-avatar.png"} // Fallback if no image
           alt=""
           width={40}
           height={40}
           className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
         />
         <div className="flex flex-col">
-          <h3 className="font-semibold">{item.name}</h3>
-          <p className="text-xs text-gray-500">{item?.email}</p>
+          <h3 className="font-semibold">
+            {item.username} {item.surname}
+          </h3>
+          <p className="text-xs text-gray-500">
+            {item?.email || "N/A"}
+          </p>
         </div>
       </td>
-      <td className="hidden md:table-cell">{item.teacherId}</td>
-      <td className="hidden md:table-cell">{item.subjects.join(",")}</td>
-      <td className="hidden md:table-cell">{item.classes.join(",")}</td>
+      <td className="hidden lg:table-cell">{item.id}</td>
       <td className="hidden lg:table-cell">{item.phone}</td>
       <td className="hidden lg:table-cell">{item.address}</td>
+      <td className="hidden md:table-cell">{item.bloodType}</td>
+      <td className="hidden md:table-cell">{item.sex}</td>
       <td>
         <div className="flex items-center gap-2">
           <Link href={`/lists/teachers/${item.id}`}>
@@ -89,16 +107,17 @@ const TeachersListPage = () => {
             </button>
           </Link>
           {role === "admin" && (
-            // <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#CFCEFF]">
-            //   <FaTrashAlt className="w-5 h-5 fill-red-300" />
-            // </button>
             <FormModal table="teacher" type="delete" id={item.id} />
           )}
         </div>
       </td>
     </tr>
   );
-    
+
+  if (loading)
+    return <div className="flex justify-center p-10">Loading...</div>;
+  if (error) return <div className="text-red-500 p-10">{error}</div>;
+
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       {/**top */}
@@ -117,13 +136,13 @@ const TeachersListPage = () => {
               // <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
               //   <FaPlus />
               // </button>
-              <FormModal table="teacher" type="create"/>
+              <FormModal table="teacher" type="create" />
             )}
           </div>
         </div>
       </div>
       {/**list */}
-      <Table columns={columns} renderRow={renderRow} data={teachersData} />
+      <Table columns={columns} renderRow={renderRow} data={teachers} />
       {/**pagination */}
       <Pagination />
     </div>

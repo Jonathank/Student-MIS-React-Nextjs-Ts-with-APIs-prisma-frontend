@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -38,3 +39,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 =======
 # Student-MIS-React-Nextjs-TypeScript
 >>>>>>> 3fa7e69aa11a6648e452b8e836df6568f079a365
+=======
+# Student-MIS-React-Nextjs-Ts-with-APIs-prisma-frontend
+>>>>>>> a4540b8a868da6f32df631a37d660037dcb9808c
