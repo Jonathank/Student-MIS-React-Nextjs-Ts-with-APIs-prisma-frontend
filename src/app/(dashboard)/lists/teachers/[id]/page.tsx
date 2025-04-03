@@ -1,5 +1,6 @@
 import Announcement from "@/app/components/Announcements";
 import BigCalendar from "@/app/components/BigCalendar";
+import FormModal from "@/app/components/FormModal";
 import PerformanceChart from "@/app/components/PerformanceChart";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,7 +24,25 @@ const SingleTeacherPage = () => {
               />
             </div>
             <div className="w-2/3 flex flex-col justify-between gap-4">
-              <h1 className="text-xl font-semibold">Kyeyune Jonathan</h1>
+              <div className="flex items-center gap-4">
+                <h1 className="text-xl font-semibold">Kyeyune Jonathan</h1>
+                <FormModal
+                  table="teacher"
+                  type="update"
+                  data={{
+                    id: 1,
+                    teacherId: "TCH001",
+                    firstName: "Alice Johnson",
+                    sex:"Male",
+                    email: "alice.johnson@example.com",
+                    photo: "/avator.png", // Replace with actual image path
+                    phone: "123-456-7890",
+                    subjects: ["Mathematics", "Physics"],
+                    classes: ["10A", "11B"],
+                    address: "123 Main St, Anytown",
+                  }}
+                />
+              </div>
               <p className="text-sm text-gray-500">
                 Java developer with experience in full-stack development,
                 specializing in Spring Framework

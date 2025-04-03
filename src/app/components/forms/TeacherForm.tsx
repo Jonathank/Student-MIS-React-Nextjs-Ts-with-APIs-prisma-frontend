@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { LiaEyeSlash } from "react-icons/lia";
 import { LiaEye } from "react-icons/lia";
 import InputField from "../InputField";
+import { IoCloudUploadOutline } from "react-icons/io5";
 
 const schema = z
   .object({
@@ -22,7 +23,8 @@ const schema = z
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
     phone: z.string().min(1, "Phone number is required"),
-    address: z.string().min(1, "Address is required"),
+      address: z.string().min(1, "Address is required"),
+    bloodType:z.string().min(1, "Blood type is required"),
     birthday: z
       .string()
       .min(1, "Date of birth is required")
@@ -91,6 +93,7 @@ const TeacherForm = ({
           label="First Name"
           type="text"
           name="firstName"
+          defaultValue={data?.firstName}
           register={register}
           error={errors.firstName}
         />
@@ -98,6 +101,7 @@ const TeacherForm = ({
           label="Last Name"
           type="text"
           name="lastName"
+          defaultValue={data?.lastName}
           register={register}
           error={errors.lastName}
         />
@@ -105,6 +109,7 @@ const TeacherForm = ({
           label="Sex"
           type="select"
           name="sex"
+          defaultValue={data?.sex}
           register={register}
           error={errors.sex}
           options={["Male", "Female"]}
@@ -113,6 +118,7 @@ const TeacherForm = ({
           label="Date of Birth"
           type="date"
           name="birthday"
+          defaultValue={data?.birthday}
           register={register}
           error={errors.birthday}
         />
@@ -120,6 +126,7 @@ const TeacherForm = ({
           label="Email"
           type="email"
           name="email"
+          defaultValue={data?.email}
           register={register}
           error={errors.email}
         />
@@ -127,6 +134,7 @@ const TeacherForm = ({
           label="Phone"
           type="text"
           name="phone"
+          defaultValue={data?.phone}
           register={register}
           error={errors.phone}
         />
@@ -134,28 +142,43 @@ const TeacherForm = ({
           label="Address"
           type="text"
           name="address"
+          defaultValue={data?.address}
           register={register}
           error={errors.address}
         />
-        <InputField
-          label="Profile Image"
-          type="file"
-          name="img"
-          register={register}
-          error={errors.img}
-        />
+        <div className="flex flex-row items-center mt-4 gap-2 ">
+          <IoCloudUploadOutline className="w-7 h-7" />
+          <InputField
+            label="Upload Photo"
+            type="file"
+            name="img"
+            defaultValue={data?.img}
+            register={register}
+            error={errors.img}
+          />
+        </div>
+
         <InputField
           label="Username"
           type="text"
           name="username"
+          defaultValue={data?.username}
           register={register}
           error={errors.username}
         />
-
+        <InputField
+          label="Blood Type"
+          type="text"
+          name="bloodType"
+          defaultValue={data?.bloodType}
+          register={register}
+          error={errors.bloodType}
+        />
         <InputField
           label="Password"
           type={showPassword ? "text" : "password"}
           name="password"
+          defaultValue={data?.password}
           register={register}
           error={errors.password}
           toggle={() => setShowPassword(!showPassword)}

@@ -29,7 +29,14 @@ const InputField = ({
 }: InputFieldProps) => {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label
+        className={`block text-sm font-medium text-gray-700 ${
+          type === "file" ? "" : ""
+        }`}
+        htmlFor={name}
+      >
+        {label}
+      </label>
 
       {type === "select" && options ? (
         <select
@@ -47,9 +54,12 @@ const InputField = ({
           <input
             type={type}
             {...register(name)}
-            className="mt-1 w-full border border-gray-300 p-2 rounded-md"
+            className={`mt-1 w-full border border-gray-300 p-2 rounded-md ${
+              type === "file" ? "hidden cursor-pointer" : ""
+            }`}
             {...inputProps}
             {...(type !== "file" ? { defaultValue } : {})}
+            id={name} 
           />
           {showToggleIcon && (
             <button

@@ -1,8 +1,13 @@
 "use client";
-import { useState } from "react";
+import React, { JSX, useState } from "react";
 import { FaPlus, FaEdit, FaTrash, FaTrashAlt } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
-import TeacherForm from "./forms/TeacherForm";
+//import TeacherForm from "./forms/TeacherForm";
+import dynamic from "next/dynamic";
+
+const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
+    loading:()=><h1>Loading....</h1>
+});
 
 const FormModal = ({
   table,
@@ -40,19 +45,25 @@ const FormModal = ({
     update: <FaEdit className="w-5 h-5  fill-blue-400" />, // Edit icon for update
     delete: <FaTrashAlt className="w-5 h-5 fill-red-300" />, // Trash icon for delete
     };
-    
+    const forms: {
+      [key: string]: (type: "create" | "update", data?: any) => JSX.Element;
+    } = {
+      teacher: (type, data) => <TeacherForm type={type} data={data} />,
+      //teacher: (type, data)=> <TeacherForm type={type} data={data}/>  all others well
+    };
     const Form = () => {
         return type === "delete" && id ? (
             <form action="" className="p-4 flex flex-col gap-4">
                 <span className="text-center font-medium">All data will be lost. Are you sure you want to delete this {table}?</span>
                 <button className="bg-red-700 text-white py-2 px-4 rounded-md border-none w-max self-center">Delete</button>
             </form>
-        ) : (
-                <TeacherForm type="create"/>
-            );
+        ) : type === "create" || type  ==="update"? (
+                forms[table](type,data)
+            //<TeacherForm type={type as "create" | "update"} data={data}/>
+        ) : ("Form not found!");
     }
 
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(false);
 
     return (
       <>
