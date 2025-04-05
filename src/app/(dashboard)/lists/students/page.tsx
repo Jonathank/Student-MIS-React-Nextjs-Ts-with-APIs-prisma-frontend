@@ -1,13 +1,18 @@
+"use client";
 import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role, studentsData, teachersData } from "@/lib/data";
+import { role} from "@/lib/data";
+import { Student } from "@/service/interfaces";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { BiSort } from "react-icons/bi";
-import { FaTrashAlt } from "react-icons/fa";
-import { FaFilter, FaPlus, FaRegEye, FaSort } from "react-icons/fa6";
+import {  FaUser } from "react-icons/fa";
+import { FaFilter,FaRegEye} from "react-icons/fa6";
+import Settings from "../../settings/page";
+import { fetchStudents } from "@/service/StudentsServices";
 
 const columns = [
   {
@@ -46,60 +51,96 @@ const columns = [
   },
 ];
 
-type Student = {
-  id: number;
-  studentId: string;
-  name: string;
-  email?: string;
-  photo: string;
-  phone?: string;
-  grade: string;
-  class: string;
-  address: string;
-};
+ 
+   const renderRow = (item: Student) => (
+     <tr
+       key={item.id}
+       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-[#F1F0FF]"
+     >
+       <td className="flex items-center gap-4 p-4">
+         {item.img ? (
+           <Image
+             src={item.img}
+             alt=""
+             width={40}
+             height={40}
+             className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
+           />
+         ) : (
+           <FaUser className="w-10 h-10 fill-gray-300" />
+         )}
+         <div className="flex flex-col">
+           <h3 className="font-semibold">
+             {item.username} {item.surname}
+           </h3>
+           <p className="text-xs text-gray-500">{item.class.name}</p>
+         </div>
+       </td>
+       <td className="hidden md:table-cell">{item.id}</td>
+       <td className="hidden md:table-cell">{item.grade.level}</td>
+       <td className="hidden md:table-cell">{item?.phone}</td>
+       <td className="hidden lg:table-cell">{item?.email}</td>
+       <td className="hidden lg:table-cell">{item.address}</td>
+       <td>
+         <div className="flex items-center gap-2">
+           <Link href={`/lists/students/${item.id}`}>
+             <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#C3EBFA]">
+               <FaRegEye className="w-5 h-5 fill-blue-400" />
+             </button>
+           </Link>
+           {role === "admin" && (
+             <FormModal table="student" type="delete" id={item.id} />
+           )}
+         </div>
+       </td>
+     </tr>
+   );
+    
 
 const StudentsListPage = () => {
-  const renderRow = (item: Student) => (
-    <tr
-      key={item.id}
-      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-[#F1F0FF]"
-    >
-      <td className="flex items-center gap-4 p-4">
-        <Image
-          src={item.photo}
-          alt=""
-          width={40}
-          height={40}
-          className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
-        />
-        <div className="flex flex-col">
-          <h3 className="font-semibold">{item.name}</h3>
-          <p className="text-xs text-gray-500">{item.class}</p>
-        </div>
-      </td>
-      <td className="hidden md:table-cell">{item.studentId}</td>
-      <td className="hidden md:table-cell">{item.grade}</td>
-      <td className="hidden md:table-cell">{item?.phone}</td>
-      <td className="hidden lg:table-celll">{item?.email}</td>
-      <td className="hidden lg:table-cell">{item.address}</td>
-      <td>
-        <div className="flex items-center gap-2">
-          <Link href={`/lists/students/${item.id}`}>
-            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#C3EBFA]">
-              <FaRegEye className="w-5 h-5 fill-blue-400" />
-            </button>
-          </Link>
-          {role === "admin" && (
-            // <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#CFCEFF]">
-            //   <FaTrashAlt className="w-5 h-5 fill-red-300" />
-            // </button>\
-            <FormModal table="student" type="delete" id={item.id} />
-          )}
-        </div>
-      </td>
-    </tr>
-  );
-    
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState<string>(""); // State for search input
+  const [sort, setSort] = useState<string>(""); // State for sorting
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset to first page when changing limit
+  };
+
+
+  useEffect(() => {
+    const getStudents = async () => {
+      try {
+        setLoading(true);
+        const { data, totalPages } = await fetchStudents(page, limit);
+        setStudents(data);
+        setTotalPages(totalPages);
+      } catch (err) {
+        setError("Failed to fetch Students");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getStudents();
+  }, [page, limit]); // Re-fetch when `page` or `limit` changes
+
+  if (loading)
+    return <div className="flex justify-center p-10">Loading...</div>;
+  if (error) return <div className="text-red-500 p-10">{error}</div>;
+
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       {/**top */}
@@ -114,19 +155,21 @@ const StudentsListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
               <BiSort />
             </button>
-            {role === "admin" && (
-              //   <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
-              //   <FaPlus />
-              // </button>
-              <FormModal table="student" type="create" />
-            )}
+            {role === "admin" && <FormModal table="student" type="create" />}
           </div>
         </div>
       </div>
+      {/* Settings Component for Pagination Control */}
+      <Settings limit={limit} onLimitChange={setLimit} />
       {/**list */}
-      <Table columns={columns} renderRow={renderRow} data={studentsData} />
+      <Table columns={columns} renderRow={renderRow} data={students} />
       {/**pagination */}
-      <Pagination />
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        siblingCount={1}
+      />
     </div>
   );
 };

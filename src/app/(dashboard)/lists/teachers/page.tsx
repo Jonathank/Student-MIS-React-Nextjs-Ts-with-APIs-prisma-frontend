@@ -9,8 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { BiSort } from "react-icons/bi";
 import { FaFilter, FaRegEye, FaUser } from "react-icons/fa6";
-import { fetchTeachers, Teacher } from "@/service/teacherService";
+import { fetchTeachers} from "@/service/teacherService";
 import Settings from "../../settings/page";
+import { Teacher } from "@/service/interfaces";
 
 const columns = [
   { header: "Info", accessor: "info" },
@@ -26,6 +27,57 @@ const columns = [
   { header: "Actions", accessor: "action" },
 ];
 
+
+
+const renderRow = (item: Teacher) => (
+  <tr
+    key={item.id}
+    className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-[#F1F0FF]"
+  >
+    <td className="flex items-center gap-4 p-4">
+      {item.img ? (
+        <Image
+          src={item.img}
+          alt=""
+          width={40}
+          height={40}
+          className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
+        />
+      ) : (
+        <FaUser className="w-10 h-10 fill-gray-300" />
+      )}
+      <div className="flex flex-col">
+        <h3 className="font-semibold">
+          {item.username} {item.surname}
+        </h3>
+        <p className="text-xs text-gray-500">{item?.email || "N/A"}</p>
+      </div>
+    </td>
+    <td className="hidden lg:table-cell">{item.id}</td>
+    <td className="hidden lg:table-cell">{item.sex}</td>
+    <td className="hidden lg:table-cell">{item.phone}</td>
+    <td className="hidden md:table-cell">
+      {item.classes.map((clas) => clas.name).join(", ")}
+    </td>
+    <td className="hidden md:table-cell">
+      {item.subjects.map((subject) => subject.name).join(", ")}
+    </td>
+    <td>
+      <div className="flex items-center gap-2">
+        <Link href={`/lists/teachers/${item.id}`}>
+          <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#C3EBFA]">
+            <FaRegEye className="w-5 h-5 fill-blue-400" />
+          </button>
+        </Link>
+        {role === "admin" && (
+          <FormModal table="teacher" type="delete" id={item.id} />
+        )}
+      </div>
+    </td>
+  </tr>
+);
+
+
 const TeachersListPage = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -33,7 +85,20 @@ const TeachersListPage = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState<string>(""); // State for search input
+  const [sort, setSort] = useState<string>(""); // State for sorting
 
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1); // Reset to first page when changing limit
+  };
+  
   useEffect(() => {
     const getTeachers = async () => {
       try {
@@ -52,64 +117,6 @@ const TeachersListPage = () => {
     getTeachers();
   }, [page, limit]); // Re-fetch when `page` or `limit` changes
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    }
-  };
-
-  const handleLimitChange = (newLimit: number) => {
-    setLimit(newLimit);
-    setPage(1); // Reset to first page when changing limit
-  };
-
-  const renderRow = (item: Teacher) => (
-    <tr
-      key={item.id}
-      className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-[#F1F0FF]"
-    >
-      <td className="flex items-center gap-4 p-4">
-        {item.img ? (
-          <Image
-            src={item.img}
-            alt=""
-            width={40}
-            height={40}
-            className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
-          />
-        ) : (
-          <FaUser className="w-10 h-10 fill-gray-300" />
-        )}
-        <div className="flex flex-col">
-          <h3 className="font-semibold">
-            {item.username} {item.surname}
-          </h3>
-          <p className="text-xs text-gray-500">{item?.email || "N/A"}</p>
-        </div>
-      </td>
-      <td className="hidden lg:table-cell">{item.id}</td>
-      <td className="hidden lg:table-cell">{item.sex}</td>
-      <td className="hidden lg:table-cell">{item.phone}</td>
-      <td className="hidden md:table-cell">
-        {item.classes.map((clas) => clas.name).join(", ")}
-      </td>
-      <td className="hidden md:table-cell">
-        {item.subjects.map((subject) => subject.name).join(", ")}
-      </td>
-      <td>
-        <div className="flex items-center gap-2">
-          <Link href={`/lists/teachers/${item.id}`}>
-            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#C3EBFA]">
-              <FaRegEye className="w-5 h-5 fill-blue-400" />
-            </button>
-          </Link>
-          {role === "admin" && (
-            <FormModal table="teacher" type="delete" id={item.id} />
-          )}
-        </div>
-      </td>
-    </tr>
-  );
 
   if (loading)
     return <div className="flex justify-center p-10">Loading...</div>;
@@ -133,7 +140,6 @@ const TeachersListPage = () => {
           </div>
         </div>
       </div>
-
       {/* Settings Component for Pagination Control */}
       <Settings limit={limit} onLimitChange={setLimit} />
       {/* Table */}
@@ -144,6 +150,7 @@ const TeachersListPage = () => {
         page={page}
         totalPages={totalPages}
         onPageChange={handlePageChange}
+        siblingCount={1}
       />
     </div>
   );
