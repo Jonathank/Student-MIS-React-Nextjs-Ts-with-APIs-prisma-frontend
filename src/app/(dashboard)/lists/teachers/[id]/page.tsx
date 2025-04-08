@@ -35,7 +35,7 @@ const SingleTeacherPage = () => {
                     firstName: "Alice Johnson",
                     sex:"Male",
                     email: "alice.johnson@example.com",
-                    photo: "/avator.png", // Replace with actual image path
+                    photo: "/avator.png",
                     phone: "123-456-7890",
                     subjects: ["Mathematics", "Physics"],
                     classes: ["10A", "11B"],

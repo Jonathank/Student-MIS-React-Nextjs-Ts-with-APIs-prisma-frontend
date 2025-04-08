@@ -137,8 +137,16 @@ const StudentsListPage = () => {
     getStudents();
   }, [page, limit]); // Re-fetch when `page` or `limit` changes
 
-  if (loading)
-    return <div className="flex justify-center p-10">Loading...</div>;
+ if (loading)
+   return (
+     <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+       <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
+       <span className="text-blue-500 text-sm font-medium">
+         Loading students details...
+       </span>
+     </div>
+   );
+
   if (error) return <div className="text-red-500 p-10">{error}</div>;
 
   return (
@@ -155,7 +163,7 @@ const StudentsListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
               <BiSort />
             </button>
-            {role === "admin" && <FormModal table="student" type="create" />}
+            {role === "admin" && (<FormModal table="student" type="create" />)}
           </div>
         </div>
       </div>

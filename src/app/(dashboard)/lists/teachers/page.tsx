@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
@@ -9,8 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { BiSort } from "react-icons/bi";
 import { FaFilter, FaRegEye, FaUser } from "react-icons/fa6";
-import { fetchTeachers} from "@/service/teacherService";
+import { fetchTeachers } from "@/service/teacherService";
 import Settings from "../../settings/page";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Teacher } from "@/service/interfaces";
 
 const columns = [
@@ -26,8 +27,6 @@ const columns = [
   },
   { header: "Actions", accessor: "action" },
 ];
-
-
 
 const renderRow = (item: Teacher) => (
   <tr
@@ -77,16 +76,51 @@ const renderRow = (item: Teacher) => (
   </tr>
 );
 
-
 const TeachersListPage = () => {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState<string>(""); // State for search input
-  const [sort, setSort] = useState<string>(""); // State for sorting
+
+   const searchParams = useSearchParams();
+   const [teachers, setTeachers] = useState<Teacher[]>([]);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState<string | null>(null);
+   const [page, setPage] = useState<number>(1);
+   const [limit, setLimit] = useState<number>(10);
+   const [totalPages, setTotalPages] = useState<number>(1);
+
+   // Parse query params
+   useEffect(() => {
+    const getTeachers = async () => {
+      try {
+        setLoading(true);
+
+        const pageParam = parseInt(searchParams.get("page") || "1");
+        const limitParam = parseInt(searchParams.get("limit") || "10");
+        const classIdParam = searchParams.get("classId")
+          ? parseInt(searchParams.get("classId") || "0")
+          : undefined;
+
+        setPage(pageParam);
+        setLimit(limitParam);
+
+        const { data, totalPages } = await fetchTeachers({
+          page: pageParam,
+          limit: limitParam,
+          classId: classIdParam,
+        });
+
+        setTeachers(data);
+        setTotalPages(totalPages);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch teachers");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+
+     getTeachers();
+   }, [searchParams]);
+
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -98,28 +132,17 @@ const TeachersListPage = () => {
     setLimit(newLimit);
     setPage(1); // Reset to first page when changing limit
   };
-  
-  useEffect(() => {
-    const getTeachers = async () => {
-      try {
-        setLoading(true);
-        const { data, totalPages } = await fetchTeachers(page, limit);
-        setTeachers(data);
-        setTotalPages(totalPages);
-      } catch (err) {
-        setError("Failed to fetch teachers");
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    getTeachers();
-  }, [page, limit]); // Re-fetch when `page` or `limit` changes
+ if (loading)
+   return (
+     <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+       <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
+       <span className="text-blue-500 text-sm font-medium">
+         Loading teachers details...
+       </span>
+     </div>
+   );
 
-
-  if (loading)
-    return <div className="flex justify-center p-10">Loading...</div>;
   if (error) return <div className="text-red-500 p-10">{error}</div>;
 
   return (
@@ -136,7 +159,7 @@ const TeachersListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
               <BiSort />
             </button>
-            {role === "admin" && <FormModal table="teacher" type="create" />}
+            {role === "admin" && (<FormModal table="teacher" type="create" />)}
           </div>
         </div>
       </div>
