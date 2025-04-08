@@ -6,7 +6,7 @@ type SettingsProps = {
   onLimitChange: (newLimit: number) => void;
 };
 
-const Settings: React.FC<SettingsProps> = ({ limit, onLimitChange }) => {
+const SetPageLimit: React.FC<SettingsProps> = ({ limit, onLimitChange }) => {
   const [selectedLimit, setSelectedLimit] = useState(limit);
 
   const handleLimitChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -35,4 +35,4 @@ const Settings: React.FC<SettingsProps> = ({ limit, onLimitChange }) => {
   );
 };
 
-export default Settings;
+export default SetPageLimit;

@@ -38,13 +38,25 @@ export const fetchTeachers = async ({ page = 1, limit = 10, search, gender, clas
     }
 };
 
-
-export const getTeacherById = async (id: string): Promise<Teacher> => {
+export const getTeacherById = async (
+    id: string,
+    page = 1,
+    limit = 10
+): Promise<{ teacher: Teacher; totalPages: number }> => {
     try {
-        const response = await axios.get<{ data: Teacher }>(`${API_URL}/teachers/${id}`);
-        return response.data.data;
+        const response = await axios.get<any>(`${API_URL}/lists/teachers/${id}`, {
+            params: { page, limit },
+        });
+
+        const teacher = response.data.data.data;
+        const totalPages = response.data.data.totalPages;
+
+        return {
+            teacher,
+            totalPages,
+        };
     } catch (error) {
-        console.error(`Error fetching teacher with id ${id}:`, error);
+        console.error(`Error fetching Teacher with id ${id}:`, error);
         throw error;
     }
 };

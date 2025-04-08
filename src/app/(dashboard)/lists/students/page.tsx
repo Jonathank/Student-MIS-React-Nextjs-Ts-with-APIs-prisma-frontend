@@ -3,16 +3,17 @@ import FormModal from "@/app/components/FormModal";
 import Pagination from "@/app/components/Pagination";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role} from "@/lib/data";
+import { role } from "@/lib/data";
 import { Student } from "@/service/interfaces";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { BiSort } from "react-icons/bi";
-import {  FaUser } from "react-icons/fa";
-import { FaFilter,FaRegEye} from "react-icons/fa6";
-import Settings from "../../settings/page";
+import { FaUser } from "react-icons/fa";
+import { FaFilter, FaRegEye } from "react-icons/fa6";
+import Settings from "../../../components/SetPageLimit";
 import { fetchStudents } from "@/service/StudentsServices";
+import SetPageLimit from "../../../components/SetPageLimit";
 
 const columns = [
   {
@@ -51,51 +52,49 @@ const columns = [
   },
 ];
 
- 
-   const renderRow = (item: Student) => (
-     <tr
-       key={item.id}
-       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-[#F1F0FF]"
-     >
-       <td className="flex items-center gap-4 p-4">
-         {item.img ? (
-           <Image
-             src={item.img}
-             alt=""
-             width={40}
-             height={40}
-             className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
-           />
-         ) : (
-           <FaUser className="w-10 h-10 fill-gray-300" />
-         )}
-         <div className="flex flex-col">
-           <h3 className="font-semibold">
-             {item.username} {item.surname}
-           </h3>
-           <p className="text-xs text-gray-500">{item.class.name}</p>
-         </div>
-       </td>
-       <td className="hidden md:table-cell">{item.id}</td>
-       <td className="hidden md:table-cell">{item.grade.level}</td>
-       <td className="hidden md:table-cell">{item?.phone}</td>
-       <td className="hidden lg:table-cell">{item?.email}</td>
-       <td className="hidden lg:table-cell">{item.address}</td>
-       <td>
-         <div className="flex items-center gap-2">
-           <Link href={`/lists/students/${item.id}`}>
-             <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#C3EBFA]">
-               <FaRegEye className="w-5 h-5 fill-blue-400" />
-             </button>
-           </Link>
-           {role === "admin" && (
-             <FormModal table="student" type="delete" id={item.id} />
-           )}
-         </div>
-       </td>
-     </tr>
-   );
-    
+const renderRow = (item: Student) => (
+  <tr
+    key={item.id}
+    className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-[#F1F0FF]"
+  >
+    <td className="flex items-center gap-4 p-4">
+      {item.img ? (
+        <Image
+          src={item.img}
+          alt=""
+          width={40}
+          height={40}
+          className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
+        />
+      ) : (
+        <FaUser className="w-10 h-10 fill-gray-300" />
+      )}
+      <div className="flex flex-col">
+        <h3 className="font-semibold">
+          {item.username} {item.surname}
+        </h3>
+        <p className="text-xs text-gray-500">{item.class.name}</p>
+      </div>
+    </td>
+    <td className="hidden md:table-cell">{item.id}</td>
+    <td className="hidden md:table-cell">{item.grade.level}</td>
+    <td className="hidden md:table-cell">{item?.phone}</td>
+    <td className="hidden lg:table-cell">{item?.email}</td>
+    <td className="hidden lg:table-cell">{item.address}</td>
+    <td>
+      <div className="flex items-center gap-2">
+        <Link href={`/lists/students/${item.id}`}>
+          <button className="w-7 h-7 flex items-center justify-center rounded-full bg-[#C3EBFA]">
+            <FaRegEye className="w-5 h-5 fill-blue-400" />
+          </button>
+        </Link>
+        {role === "admin" && (
+          <FormModal table="student" type="delete" id={item.id} />
+        )}
+      </div>
+    </td>
+  </tr>
+);
 
 const StudentsListPage = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -104,8 +103,6 @@ const StudentsListPage = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState<string>(""); // State for search input
-  const [sort, setSort] = useState<string>(""); // State for sorting
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -117,7 +114,6 @@ const StudentsListPage = () => {
     setLimit(newLimit);
     setPage(1); // Reset to first page when changing limit
   };
-
 
   useEffect(() => {
     const getStudents = async () => {
@@ -137,15 +133,15 @@ const StudentsListPage = () => {
     getStudents();
   }, [page, limit]); // Re-fetch when `page` or `limit` changes
 
- if (loading)
-   return (
-     <div className="flex flex-col items-center justify-center h-[400px] gap-4">
-       <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
-       <span className="text-blue-500 text-sm font-medium">
-         Loading students details...
-       </span>
-     </div>
-   );
+  if (loading)
+    return (
+      <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
+        <span className="text-blue-500 text-sm font-medium">
+          Loading students details...
+        </span>
+      </div>
+    );
 
   if (error) return <div className="text-red-500 p-10">{error}</div>;
 
@@ -163,12 +159,12 @@ const StudentsListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
               <BiSort />
             </button>
-            {role === "admin" && (<FormModal table="student" type="create" />)}
+            {role === "admin" && <FormModal table="student" type="create" />}
           </div>
         </div>
       </div>
       {/* Settings Component for Pagination Control */}
-      <Settings limit={limit} onLimitChange={setLimit} />
+      <SetPageLimit limit={limit} onLimitChange={setLimit} />
       {/**list */}
       <Table columns={columns} renderRow={renderRow} data={students} />
       {/**pagination */}

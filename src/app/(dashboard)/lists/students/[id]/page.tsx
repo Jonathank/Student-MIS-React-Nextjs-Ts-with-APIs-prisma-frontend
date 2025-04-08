@@ -1,6 +1,7 @@
 "use client";
 import Announcement from "@/app/components/Announcements";
 import BigCalendar from "@/app/components/BigCalendar";
+import FormModal from "@/app/components/FormModal";
 import PerformanceChart from "@/app/components/PerformanceChart";
 import { getStudentById } from "@/service/StudentsServices";
 import Image from "next/image";
@@ -47,7 +48,7 @@ useEffect(() => {
      <div className="flex flex-col items-center justify-center h-[400px] gap-4">
        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
        <span className="text-blue-500 text-sm font-medium">
-         Loading student details...
+         Loading student personal details...
        </span>
      </div>
    );
@@ -77,9 +78,28 @@ useEffect(() => {
               )}
             </div>
             <div className="w-2/3 flex flex-col justify-between gap-4">
-              <h1 className="text-xl font-semibold">
-                {student.username} {student.surname}
-              </h1>
+              <div className="flex items-center gap-4">
+                <h1 className="text-xl font-semibold">
+                  {student.username} {student.surname}
+                </h1>
+                <FormModal
+                  table="student"
+                  type="update"
+                  data={{
+                    id: student.id,
+                    studentId:student.studentId,
+                    username: student.username,
+                    surname: student.surname,
+                    sex: "Male",
+                    email: "alice.johnson@example.com",
+                    photo: "/avator.png",
+                    phone: "123-456-7890",
+                    subjects: ["Mathematics", "Physics"],
+                    classes: ["10A", "11B"],
+                    address: "123 Main St, Anytown",
+                  }}
+                />
+              </div>
               <p className="text-sm text-gray-500">
                 Std-ID: {student.id} class : {student.class.name} Grade:{" "}
                 {student.grade.level}

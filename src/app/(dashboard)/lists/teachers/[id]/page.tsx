@@ -1,11 +1,59 @@
+"use client";
 import Announcement from "@/app/components/Announcements";
 import BigCalendar from "@/app/components/BigCalendar";
 import FormModal from "@/app/components/FormModal";
 import PerformanceChart from "@/app/components/PerformanceChart";
+import { getTeacherById } from "@/service/teacherService";
 import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { FaUser } from "react-icons/fa";
 
 const SingleTeacherPage = () => {
+
+   const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [teacher, setTeacher] = useState<any>(null);
+  
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  
+  useEffect(() => {
+    if (!id) return; // prevent fetch if id is undefined
+  
+    const getTeacher = async () => {
+      try {
+        setLoading(true);
+        const { teacher, totalPages } = await getTeacherById(id, page, limit);
+        setTeacher(teacher);
+        setTotalPages(totalPages);
+      } catch (err) {
+        setError("Failed to fetch teacher");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    getTeacher();
+  }, [id, page, limit]);
+  
+   if (loading)
+     return (
+       <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
+         <span className="text-blue-500 text-sm font-medium">
+           Loading teacher personal details...
+         </span>
+       </div>
+     );
+  
+    if (error) return <div className="text-red-500 p-10">{error}</div>;
+  
   return (
     <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
       {/**left */}
@@ -15,13 +63,17 @@ const SingleTeacherPage = () => {
           {/**user info card */}
           <div className="bg-[#C3EBFA] py-6 px-4 rounded-md flex-1 flex gap-4">
             <div className="w-1/3">
-              <Image
-                src="/avator.png"
-                alt="user Img"
-                width={144}
-                height={144}
-                className="w-36 h-36 rounded-full object-cover"
-              />
+               {teacher.img ? (
+                             <Image
+                               src={teacher.img}
+                               alt="teacher Img"
+                               width={144}
+                               height={144}
+                               className="w-36 h-36 rounded-full object-cover"
+                             />
+                           ) : (
+                             <FaUser className="w-20 h-20 fill-gray-300" />
+                           )}
             </div>
             <div className="w-2/3 flex flex-col justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -33,7 +85,7 @@ const SingleTeacherPage = () => {
                     id: 1,
                     teacherId: "TCH001",
                     firstName: "Alice Johnson",
-                    sex:"Male",
+                    sex: "Male",
                     email: "alice.johnson@example.com",
                     photo: "/avator.png",
                     phone: "123-456-7890",
@@ -141,7 +193,10 @@ const SingleTeacherPage = () => {
             <Link href="" className="p-3 rounded-md bg-[#EDF9FD]">
               Teacher's Classes
             </Link>
-            <Link href="" className="p-3 rounded-md bg-[#F1F0FF]">
+            <Link
+              href={`/lists/teacher?classId=${teacher?.classId || ""}`}
+              className="p-3 rounded-md bg-[#F1F0FF]"
+            >
               Teacher's Students
             </Link>
             <Link href="" className="p-3 rounded-md bg-[#FEFCE8]">

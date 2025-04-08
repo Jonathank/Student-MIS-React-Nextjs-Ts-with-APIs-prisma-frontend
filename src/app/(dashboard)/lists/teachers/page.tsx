@@ -10,9 +10,11 @@ import Link from "next/link";
 import { BiSort } from "react-icons/bi";
 import { FaFilter, FaRegEye, FaUser } from "react-icons/fa6";
 import { fetchTeachers } from "@/service/teacherService";
-import Settings from "../../settings/page";
+import Settings from "../../../components/SetPageLimit";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Teacher } from "@/service/interfaces";
+import GenderSelect from "@/app/components/GenderSelect";
+import SetPageLimit from "../../../components/SetPageLimit";
 
 const columns = [
   { header: "Info", accessor: "info" },
@@ -77,21 +79,22 @@ const renderRow = (item: Teacher) => (
 );
 
 const TeachersListPage = () => {
+  const searchParams = useSearchParams();
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
-   const searchParams = useSearchParams();
-   const [teachers, setTeachers] = useState<Teacher[]>([]);
-   const [loading, setLoading] = useState(true);
-   const [error, setError] = useState<string | null>(null);
-   const [page, setPage] = useState<number>(1);
-   const [limit, setLimit] = useState<number>(10);
-   const [totalPages, setTotalPages] = useState<number>(1);
-
-   // Parse query params
-   useEffect(() => {
+  // Parse query params
+  useEffect(() => {
     const getTeachers = async () => {
       try {
         setLoading(true);
 
+        const search = searchParams.get("search") || "";
+        const gender = searchParams.get("gender") || undefined;
         const pageParam = parseInt(searchParams.get("page") || "1");
         const limitParam = parseInt(searchParams.get("limit") || "10");
         const classIdParam = searchParams.get("classId")
@@ -105,6 +108,8 @@ const TeachersListPage = () => {
           page: pageParam,
           limit: limitParam,
           classId: classIdParam,
+          search,
+          gender,
         });
 
         setTeachers(data);
@@ -117,31 +122,36 @@ const TeachersListPage = () => {
       }
     };
 
+    getTeachers();
+  }, [searchParams]);
 
-     getTeachers();
-   }, [searchParams]);
-
+  // Handle URL changes for pagination and filters
+  const router = useRouter();
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", newPage.toString());
+      router.push(`?${params.toString()}`);
     }
   };
 
   const handleLimitChange = (newLimit: number) => {
-    setLimit(newLimit);
-    setPage(1); // Reset to first page when changing limit
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("limit", newLimit.toString());
+    params.set("page", "1"); // Reset to first page when changing limit
+    router.push(`?${params.toString()}`);
   };
 
- if (loading)
-   return (
-     <div className="flex flex-col items-center justify-center h-[400px] gap-4">
-       <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
-       <span className="text-blue-500 text-sm font-medium">
-         Loading teachers details...
-       </span>
-     </div>
-   );
+  if (loading)
+    return (
+      <div className="flex flex-col items-center justify-center h-[400px] gap-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-400 border-t-transparent"></div>
+        <span className="text-blue-500 text-sm font-medium">
+          Loading teachers details...
+        </span>
+      </div>
+    );
 
   if (error) return <div className="text-red-500 p-10">{error}</div>;
 
@@ -152,6 +162,9 @@ const TeachersListPage = () => {
         <h1 className="hidden md:block text-lg font-semibold">All Teachers</h1>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
+          <div className="hidden md:flex items-center gap-4">
+            <GenderSelect searchParams={searchParams} router={router} />
+          </div>
           <div className="flex items-center gap-4 self-end">
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
               <FaFilter />
@@ -159,12 +172,12 @@ const TeachersListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-[#FAE27C]">
               <BiSort />
             </button>
-            {role === "admin" && (<FormModal table="teacher" type="create" />)}
+            {role === "admin" && <FormModal table="teacher" type="create" />}
           </div>
         </div>
       </div>
       {/* Settings Component for Pagination Control */}
-      <Settings limit={limit} onLimitChange={setLimit} />
+      <SetPageLimit limit={limit} onLimitChange={handleLimitChange} />
       {/* Table */}
       <Table columns={columns} renderRow={renderRow} data={teachers} />
 
