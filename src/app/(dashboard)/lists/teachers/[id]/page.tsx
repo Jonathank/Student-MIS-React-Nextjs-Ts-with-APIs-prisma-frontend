@@ -63,17 +63,17 @@ const SingleTeacherPage = () => {
           {/**user info card */}
           <div className="bg-[#C3EBFA] py-6 px-4 rounded-md flex-1 flex gap-4">
             <div className="w-1/3">
-               {teacher.img ? (
-                             <Image
-                               src={teacher.img}
-                               alt="teacher Img"
-                               width={144}
-                               height={144}
-                               className="w-36 h-36 rounded-full object-cover"
-                             />
-                           ) : (
-                             <FaUser className="w-20 h-20 fill-gray-300" />
-                           )}
+              {teacher.img ? (
+                <Image
+                  src={teacher.img}
+                  alt="teacher Img"
+                  width={144}
+                  height={144}
+                  className="w-36 h-36 rounded-full object-cover"
+                />
+              ) : (
+                <FaUser className="w-20 h-20 fill-gray-300" />
+              )}
             </div>
             <div className="w-2/3 flex flex-col justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -194,13 +194,13 @@ const SingleTeacherPage = () => {
               Teacher's Classes
             </Link>
             <Link
-              href={`/lists/teacher?classId=${teacher?.classId || ""}`}
+              href={`/lists/students?teacherId=${teacher?.id || ""}`}
               className="p-3 rounded-md bg-[#F1F0FF]"
             >
-              Teacher's Students
+              TeachersStudents
             </Link>
             <Link href="" className="p-3 rounded-md bg-[#FEFCE8]">
-              Teacher's Lessons
+              My Lessons
             </Link>
             <Link href="" className="p-3 rounded-md bg-pink-50">
               Teacher's Exams
