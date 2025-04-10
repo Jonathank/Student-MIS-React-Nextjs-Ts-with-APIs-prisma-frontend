@@ -10,6 +10,7 @@ export const fetchTeachers = async ({ page = 1, limit = 10, search, gender, clas
     search?: string;
     gender?: string;
     classId?: number;
+    
 }): Promise<{ data: Teacher[]; totalPages: number }> => {
     try {
         const params: any = {

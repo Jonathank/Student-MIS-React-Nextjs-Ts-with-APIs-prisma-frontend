@@ -7,10 +7,28 @@ import { Student } from "./interfaces";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export const fetchStudents = async (page = 1, limit = 10): Promise<{ data: Student[]; totalPages: number }> => {
+export const fetchStudents  = async ({ page = 1, limit = 10, search, gender, classId, teacherId, }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    gender?: string;
+    classId?: number;
+    teacherId?: string;
+}): Promise<{ data: Student[]; totalPages: number }> => {
     try {
+        const params: any = {
+            page,
+            limit,
+        };
+
+        // Append filters only if they're present
+        if (search) params.search = search;
+        if (gender) params.gender = gender;
+        if (classId !== undefined) params.classId = classId;
+        if (teacherId !== undefined) params.teacherId = teacherId;
+       
         const response = await axios.get<any>(`${API_URL}/lists/students`, {
-            params: { page, limit }
+            params,
         });
         console.log("API Response:", response.data); 
 

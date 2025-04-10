@@ -14,6 +14,7 @@ import { FaFilter, FaRegEye } from "react-icons/fa6";
 import Settings from "../../../components/SetPageLimit";
 import { fetchStudents } from "@/service/StudentsServices";
 import SetPageLimit from "../../../components/SetPageLimit";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const columns = [
   {
@@ -97,6 +98,7 @@ const renderRow = (item: Student) => (
 );
 
 const StudentsListPage = () => {
+  const searchParams = useSearchParams();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,22 +106,33 @@ const StudentsListPage = () => {
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    }
-  };
-
-  const handleLimitChange = (newLimit: number) => {
-    setLimit(newLimit);
-    setPage(1); // Reset to first page when changing limit
-  };
-
+  
   useEffect(() => {
     const getStudents = async () => {
       try {
         setLoading(true);
-        const { data, totalPages } = await fetchStudents(page, limit);
+        const teacherId = searchParams.get("teacherId") || undefined;
+         const search = searchParams.get("search") || "";
+         const gender = searchParams.get("gender") || undefined;
+         const pageParam = parseInt(searchParams.get("page") || "1");
+         const limitParam = parseInt(searchParams.get("limit") || "10");
+         const classIdParam = searchParams.get("classId")
+           ? parseInt(searchParams.get("classId") || "0")
+          : undefined;
+        
+         setPage(pageParam);
+         setLimit(limitParam);
+        
+        const { data, totalPages } = await fetchStudents(
+          {
+          page: pageParam,
+          limit: limitParam,
+          classId: classIdParam,
+          search,
+          gender,
+          teacherId,
+          });
+        
         setStudents(data);
         setTotalPages(totalPages);
       } catch (err) {
@@ -131,7 +144,25 @@ const StudentsListPage = () => {
     };
 
     getStudents();
-  }, [page, limit]); // Re-fetch when `page` or `limit` changes
+  }, [searchParams]);
+
+  // Handle URL changes for pagination and filters
+    const router = useRouter();
+  
+    const handlePageChange = (newPage: number) => {
+      if (newPage >= 1 && newPage <= totalPages) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("page", newPage.toString());
+        router.push(`?${params.toString()}`);
+      }
+    };
+
+  const handleLimitChange = (newLimit: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("limit", newLimit.toString());
+    params.set("page", "1"); // Reset to first page when changing limit
+    router.push(`?${params.toString()}`);
+  };
 
   if (loading)
     return (
@@ -164,7 +195,7 @@ const StudentsListPage = () => {
         </div>
       </div>
       {/* Settings Component for Pagination Control */}
-      <SetPageLimit limit={limit} onLimitChange={setLimit} />
+           <SetPageLimit limit={limit} onLimitChange={handleLimitChange} />
       {/**list */}
       <Table columns={columns} renderRow={renderRow} data={students} />
       {/**pagination */}
