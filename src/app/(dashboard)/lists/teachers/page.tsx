@@ -15,6 +15,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Teacher } from "@/service/interfaces";
 import GenderSelect from "@/app/components/GenderSelect";
 import SetPageLimit from "../../../components/SetPageLimit";
+import { handleLimitChange } from "@/utils/handleLimitChange";
+import { handlePageChange } from "@/utils/handlePageChange";
 
 const columns = [
   { header: "Info", accessor: "info" },
@@ -86,6 +88,8 @@ const TeachersListPage = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
+  // Handle URL changes for pagination and filters
+  const router = useRouter();
 
   // Parse query params
   useEffect(() => {
@@ -124,24 +128,7 @@ const TeachersListPage = () => {
 
     getTeachers();
   }, [searchParams]);
-
-  // Handle URL changes for pagination and filters
-  const router = useRouter();
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("page", newPage.toString());
-      router.push(`?${params.toString()}`);
-    }
-  };
-
-  const handleLimitChange = (newLimit: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("limit", newLimit.toString());
-    params.set("page", "1"); // Reset to first page when changing limit
-    router.push(`?${params.toString()}`);
-  };
+  
 
   if (loading)
     return (
@@ -177,7 +164,12 @@ const TeachersListPage = () => {
         </div>
       </div>
       {/* Settings Component for Pagination Control */}
-      <SetPageLimit limit={limit} onLimitChange={handleLimitChange} />
+      <SetPageLimit
+        limit={limit}
+        onLimitChange={(newLimit) =>
+          handleLimitChange(newLimit, searchParams, router)
+        }
+      />
       {/* Table */}
       <Table columns={columns} renderRow={renderRow} data={teachers} />
 
@@ -185,7 +177,9 @@ const TeachersListPage = () => {
       <Pagination
         page={page}
         totalPages={totalPages}
-        onPageChange={handlePageChange}
+        onPageChange={(newPage) =>
+          handlePageChange(newPage, totalPages, searchParams, router)
+        }
         siblingCount={1}
       />
     </div>

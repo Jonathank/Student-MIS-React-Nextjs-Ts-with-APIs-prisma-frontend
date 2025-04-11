@@ -1,69 +1,41 @@
 
-
-
 import axios from "axios";
 import { Student } from "./interfaces";
+import { fetchEntities, getEntityById } from "@/utils/Generics";
+import { StudentFilters } from "@/utils/EntityFilters";
 
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-export const fetchStudents  = async ({ page = 1, limit = 10, search, gender, classId, teacherId, }: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    gender?: string;
-    classId?: number;
-    teacherId?: string;
-}): Promise<{ data: Student[]; totalPages: number }> => {
-    try {
-        const params: any = {
-            page,
-            limit,
-        };
-
-        // Append filters only if they're present
-        if (search) params.search = search;
-        if (gender) params.gender = gender;
-        if (classId !== undefined) params.classId = classId;
-        if (teacherId !== undefined) params.teacherId = teacherId;
-       
-        const response = await axios.get<any>(`${API_URL}/lists/students`, {
-            params,
-        });
-        console.log("API Response:", response.data); 
-
-        return {
-            data: response.data.data.data,
-            totalPages: response.data.data.totalPages,
-        };
-
-    } catch (error) {
-        console.error("Error fetching teachers:", error);
-        return { data: [], totalPages: 1 }; 
-    }
-};
 
 export const getStudentById = async (
     id: string,
     page = 1,
     limit = 10
 ): Promise<{ student: Student; totalPages: number }> => {
-    try {
-        const response = await axios.get<any>(`${API_URL}/lists/students/${id}`, {
-            params: { page, limit },
-        });
-
-        const student = response.data.data.data;
-        const totalPages = response.data.data.totalPages;
-
-        return {
-            student,
-            totalPages,
-        };
-    } catch (error) {
-        console.error(`Error fetching Student with id ${id}:`, error);
-        throw error;
-    }
+    const { data, totalPages } = await getEntityById<Student>('students', id, page, limit);
+    return { student: data, totalPages };
 };
 
 
+
+export const fetchStudents = async ({
+    page = 1,
+    limit = 10,
+    search,
+    gender,
+    classId,
+    teacherId,
+}: StudentFilters): Promise<{ data: Student[]; totalPages: number }> => {
+    const filters: StudentFilters = {
+        page,
+        limit,
+    };
+
+    // Append other filters only if they're present
+    if (search) filters.search = search;
+    if (gender) filters.gender = gender;
+    if (classId !== undefined) filters.classId = classId;
+    if (teacherId !== undefined) filters.teacherId = teacherId;
+
+    const { data, totalPages } = await fetchEntities('students', filters);
+    return { data: data as Student[], totalPages };
+    
+};

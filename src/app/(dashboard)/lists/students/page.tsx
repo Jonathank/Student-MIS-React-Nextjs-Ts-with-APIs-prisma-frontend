@@ -15,6 +15,8 @@ import Settings from "../../../components/SetPageLimit";
 import { fetchStudents } from "@/service/StudentsServices";
 import SetPageLimit from "../../../components/SetPageLimit";
 import { useRouter, useSearchParams } from "next/navigation";
+import { handleLimitChange } from "@/utils/handleLimitChange";
+import { handlePageChange } from "@/utils/handlePageChange";
 
 const columns = [
   {
@@ -105,34 +107,34 @@ const StudentsListPage = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  // Handle URL changes for pagination and filters
+  const router = useRouter();
 
-  
   useEffect(() => {
     const getStudents = async () => {
       try {
         setLoading(true);
         const teacherId = searchParams.get("teacherId") || undefined;
-         const search = searchParams.get("search") || "";
-         const gender = searchParams.get("gender") || undefined;
-         const pageParam = parseInt(searchParams.get("page") || "1");
-         const limitParam = parseInt(searchParams.get("limit") || "10");
-         const classIdParam = searchParams.get("classId")
-           ? parseInt(searchParams.get("classId") || "0")
+        const search = searchParams.get("search") || "";
+        const gender = searchParams.get("gender") || undefined;
+        const pageParam = parseInt(searchParams.get("page") || "1");
+        const limitParam = parseInt(searchParams.get("limit") || "10");
+        const classIdParam = searchParams.get("classId")
+          ? parseInt(searchParams.get("classId") || "0")
           : undefined;
-        
-         setPage(pageParam);
-         setLimit(limitParam);
-        
-        const { data, totalPages } = await fetchStudents(
-          {
+
+        setPage(pageParam);
+        setLimit(limitParam);
+
+        const { data, totalPages } = await fetchStudents({
           page: pageParam,
           limit: limitParam,
           classId: classIdParam,
           search,
           gender,
           teacherId,
-          });
-        
+        });
+
         setStudents(data);
         setTotalPages(totalPages);
       } catch (err) {
@@ -146,23 +148,6 @@ const StudentsListPage = () => {
     getStudents();
   }, [searchParams]);
 
-  // Handle URL changes for pagination and filters
-    const router = useRouter();
-  
-    const handlePageChange = (newPage: number) => {
-      if (newPage >= 1 && newPage <= totalPages) {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("page", newPage.toString());
-        router.push(`?${params.toString()}`);
-      }
-    };
-
-  const handleLimitChange = (newLimit: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("limit", newLimit.toString());
-    params.set("page", "1"); // Reset to first page when changing limit
-    router.push(`?${params.toString()}`);
-  };
 
   if (loading)
     return (
@@ -195,14 +180,17 @@ const StudentsListPage = () => {
         </div>
       </div>
       {/* Settings Component for Pagination Control */}
-           <SetPageLimit limit={limit} onLimitChange={handleLimitChange} />
+      <SetPageLimit limit={limit}onLimitChange={(newLimit) =>
+                handleLimitChange(newLimit, searchParams, router)} />
       {/**list */}
       <Table columns={columns} renderRow={renderRow} data={students} />
       {/**pagination */}
       <Pagination
         page={page}
         totalPages={totalPages}
-        onPageChange={handlePageChange}
+       onPageChange={(newPage) =>
+                 handlePageChange(newPage, totalPages, searchParams, router)
+               }
         siblingCount={1}
       />
     </div>
