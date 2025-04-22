@@ -101,7 +101,7 @@ const renderRow = (item: Student) => (
 
 const StudentsListPage = () => {
   const searchParams = useSearchParams();
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<Student[]>();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -123,10 +123,11 @@ const StudentsListPage = () => {
           ? parseInt(searchParams.get("classId") || "0")
           : undefined;
 
+        
         setPage(pageParam);
         setLimit(limitParam);
 
-        const { data, totalPages } = await fetchStudents({
+        const result = await fetchStudents({
           page: pageParam,
           limit: limitParam,
           classId: classIdParam,
@@ -135,8 +136,14 @@ const StudentsListPage = () => {
           teacherId,
         });
 
-        setStudents(data);
-        setTotalPages(totalPages);
+        console.log("Data type:", typeof result.data);
+        console.log("Is Array?", Array.isArray(result.data));
+        console.log("Raw data:", result.data);
+
+        // Ensure we set an array
+        setStudents(Array.isArray(result.data) ? result.data : []);
+        setTotalPages(result.totalPages);
+
       } catch (err) {
         setError("Failed to fetch Students");
         console.error(err);
@@ -183,7 +190,7 @@ const StudentsListPage = () => {
       <SetPageLimit limit={limit}onLimitChange={(newLimit) =>
                 handleLimitChange(newLimit, searchParams, router)} />
       {/**list */}
-      <Table columns={columns} renderRow={renderRow} data={students} />
+      <Table columns={columns} renderRow={renderRow} data={students || []} />
       {/**pagination */}
       <Pagination
         page={page}

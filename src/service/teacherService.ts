@@ -1,5 +1,4 @@
 
-import axios from "axios";
 import { Teacher } from "./interfaces";
 import { fetchEntities, getEntityById } from "@/utils/Generics";
 import { TeacherFilters } from "@/utils/EntityFilters";
@@ -9,7 +8,7 @@ export const getTeacherById = async (
     id: string,
     page = 1,
     limit = 10
-): Promise<{ teacher: Teacher; totalPages: number }> => {
+): Promise<{ teacher: Teacher | undefined; totalPages: number }> => {
     const { data, totalPages } = await getEntityById<Teacher>('teachers', id, page, limit);
     return { teacher: data, totalPages };
 };

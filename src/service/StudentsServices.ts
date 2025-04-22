@@ -1,5 +1,4 @@
 
-import axios from "axios";
 import { Student } from "./interfaces";
 import { fetchEntities, getEntityById } from "@/utils/Generics";
 import { StudentFilters } from "@/utils/EntityFilters";
@@ -9,8 +8,9 @@ export const getStudentById = async (
     id: string,
     page = 1,
     limit = 10
-): Promise<{ student: Student; totalPages: number }> => {
+): Promise<{ student: Student | undefined; totalPages: number }> => {
     const { data, totalPages } = await getEntityById<Student>('students', id, page, limit);
+
     return { student: data, totalPages };
 };
 
@@ -36,6 +36,8 @@ export const fetchStudents = async ({
     if (teacherId !== undefined) filters.teacherId = teacherId;
 
     const { data, totalPages } = await fetchEntities('students', filters);
+    console.log("Raw API response in service:", data);
+
     return { data: data as Student[], totalPages };
     
 };
