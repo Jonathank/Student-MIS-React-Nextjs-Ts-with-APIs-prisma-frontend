@@ -1,5 +1,4 @@
 import { Parent, Student, Teacher } from "@/service/interfaces";
-import { UserSex } from "@/service/interfaces";
 
 export type ParentFilters = {
     page?: number;

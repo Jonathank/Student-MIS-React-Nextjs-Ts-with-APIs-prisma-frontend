@@ -4,12 +4,13 @@ import Pagination from "@/app/components/Pagination";
 import SetPageLimit from "@/app/components/SetPageLimit";
 import Table from "@/app/components/Table";
 import TableSearch from "@/app/components/TableSearch";
-import { role, parentsData } from "@/lib/data";
-import { Parent, Teacher } from "@/service/interfaces";
+import { role} from "@/lib/data";
+import { Parent} from "@/service/interfaces";
+import { fetchParents } from "@/service/ParentsServices";
 import { handleLimitChange } from "@/utils/handleLimitChange";
 import { handlePageChange } from "@/utils/handlePageChange";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BiSort } from "react-icons/bi";
 import { FaFilter, FaPlus, FaRegEye, FaSort } from "react-icons/fa6";
 
@@ -81,16 +82,49 @@ const renderRow = (item: Parent) => (
 );
 
 const ParentsListPage = () => {
-  const searchParams = useSearchParams();
-    const [teachers, setTeachers] = useState<Teacher[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [page, setPage] = useState<number>(1);
-    const [limit, setLimit] = useState<number>(10);
-    const [totalPages, setTotalPages] = useState<number>(1);
+   const searchParams = useSearchParams();
+   const [parents, setParents] = useState<Parent[]>();
+   const [loading, setLoading] = useState<boolean>(true);
+   const [error, setError] = useState<string | null>(null);
+   const [page, setPage] = useState(1);
+   const [limit, setLimit] = useState(10);
+   const [totalPages, setTotalPages] = useState(1);
   // Handle URL changes for pagination and filters
   const router = useRouter();
   
+  useEffect(() => {
+      const getParents = async () => {
+        try {
+          setLoading(true);
+          const search = searchParams.get("search") || "";
+          const gender = searchParams.get("gender") || undefined;
+          const pageParam = parseInt(searchParams.get("page") || "1");
+          const limitParam = parseInt(searchParams.get("limit") || "10");
+          
+          setPage(pageParam);
+          setLimit(limitParam);
+  
+          const result = await fetchParents({
+            page: pageParam,
+            limit: limitParam,
+            search,
+            gender,
+          });
+  
+          // Ensure we set an array
+          setParents(Array.isArray(result.data) ? result.data : []);
+          setTotalPages(result.totalPages);
+  
+        } catch (err) {
+          setError("Failed to fetch Parents");
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      getParents();
+    }, [searchParams]);
   
     
   if (loading)
@@ -126,7 +160,7 @@ const ParentsListPage = () => {
       {/* Settings Component for Pagination Control */}
       <SetPageLimit limit={limit} onLimitChange={(newLimit) => handleLimitChange(newLimit, searchParams, router)} />
       {/**list */}
-      <Table columns={columns} renderRow={renderRow} data={parentsData} />
+      <Table columns={columns} renderRow={renderRow} data={parents || []} />
       {/**pagination */}
       <Pagination
         page={page}

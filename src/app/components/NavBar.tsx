@@ -5,7 +5,6 @@ import { CgProfile } from "react-icons/cg";
 import { FaUserLarge } from "react-icons/fa6";
 import { HiOutlineSpeakerphone } from "react-icons/hi";
 import { IoIosSearch } from "react-icons/io";
-import { TbSpeakerphone } from "react-icons/tb";
 
 
 const NavBar = () => {
