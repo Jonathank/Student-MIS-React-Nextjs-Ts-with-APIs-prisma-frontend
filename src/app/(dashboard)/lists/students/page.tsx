@@ -11,7 +11,6 @@ import { useState, useEffect } from "react";
 import { BiSort } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
 import { FaFilter, FaRegEye } from "react-icons/fa6";
-import Settings from "../../../components/SetPageLimit";
 import { fetchStudents } from "@/service/StudentsServices";
 import SetPageLimit from "../../../components/SetPageLimit";
 import { useRouter, useSearchParams } from "next/navigation";
