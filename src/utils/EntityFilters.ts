@@ -1,5 +1,9 @@
-import { Parent, Student, Teacher } from "@/service/interfaces";
-
+import { Parent, Student, Subject, Teacher } from "@/service/interfaces";
+export type SubjectFilters = {
+    page?: number;
+    limit?: number;
+    search?: string;
+}
 export type ParentFilters = {
     page?: number;
     limit?: number;
@@ -26,6 +30,7 @@ export type TeacherFilters = {
 
 // Master map (auto-typed)
 export const entityMap = {
+    subjects:{model: {} as Subject, filters: {} as SubjectFilters},
     parents: { model: {} as Parent, filters: {} as ParentFilters },
     students: { model: {} as Student, filters: {} as StudentFilters },
     teachers: {model: {} as Teacher, filters:{} as TeacherFilters},

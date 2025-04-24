@@ -87,7 +87,7 @@ useEffect(() => {
                   type="update"
                   data={{
                     id: student.id,
-                    studentId:student.studentId,
+                    studentId: student.studentId,
                     username: student.username,
                     surname: student.surname,
                     sex: "Male",
@@ -195,7 +195,10 @@ useEffect(() => {
         <div className="bg-white p-4 rounded-md">
           <h1 className="text-xl font-semibold">Shortcuts</h1>
           <div className="mt-4 flex gap-4 flex-wrap text-xs text-gray-500">
-            <Link href="" className="p-3 rounded-md bg-[#EDF9FD]">
+            <Link
+              href={`/lists/lessons?classId=${student?.classId || ""}`}
+              className="p-3 rounded-md bg-[#EDF9FD]"
+            >
               Student's Lessons
             </Link>
             <Link
@@ -204,7 +207,12 @@ useEffect(() => {
             >
               Student's Teachers
             </Link>
-            <Link href="" className="p-3 rounded-md bg-[#FEFCE8]">
+            <Link
+              href={`/lists/results?studentId=${
+                student?.id || ""
+              }`}
+              className="p-3 rounded-md bg-[#FEFCE8]"
+            >
               Student's Results
             </Link>
             <Link href="" className="p-3 rounded-md bg-pink-50">
